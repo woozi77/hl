@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>李知勋抽卡小游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B0000', // 深红色
+                        secondary: '#380C15', // 优雅深红色
+                        accent: '#FF4D4D', // 亮红色
+                        dark: '#121212', // 深黑色
+                        vine: '#4A0A14', // 藤蔓颜色
+                        voice: '#4A235A', // 语音卡特殊颜色
+                        video: '#1a237e' // 直拍卡特殊颜色
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
+            }
+            .video-card-shadow {
+                box-shadow: 0 0 15px rgba(26, 35, 126, 0.5);
+            }
+            .card-hover {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px) scale(1.02);
+                box-shadow: 0 0 25px rgba(255, 77, 77, 0.7);
+            }
+            .voice-card-hover:hover {
+                box-shadow: 0 0 25px rgba(138, 43, 226, 0.7);
+            }
+            .video-card-hover:hover {
+                box-shadow: 0 0 25px rgba(26, 35, 126, 0.7);
+            }
+            .bg-pattern {
+                background-image: radial-gradient(rgba(139, 0, 0, 0.3) 1px, transparent 1px), 
+                                  url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238B0000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                background-size: 20px 20px, 60px 60px;
+            }
+            .gacha-shine {
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                background-size: 200% 100%;
+                animation: shine 1.5s infinite;
+            }
+            .ruby-glow {
+                animation: rubyPulse 2s infinite;
+            }
+            .voice-glow {
+                animation: voicePulse 2s infinite;
+            }
+            .video-glow {
+                animation: videoPulse 2s infinite;
+            }
+            .vine-border {
+                position: relative;
+            }
+            .vine-border::before, .vine-border::after {
+                content: "";
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+            }
+            .note-decoration {
+                animation: noteFloat 4s ease-in-out infinite;
+            }
+            .cross-decoration {
+                transform: rotate(45deg);
+            }
+            .music-control {
+                animation: float 3s ease-in-out infinite;
+                cursor: move;
+            }
+            @keyframes shine {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+            @keyframes rubyPulse {
+                0%, 100% { box-shadow: 0 0 10px rgba(255, 77, 77, 0.5), 0 0 20px rgba(255, 77, 77, 0.3); }
+                50% { box-shadow: 0 0 15px rgba(255, 77, 77, 0.7), 0 0 30px rgba(255, 77, 77, 0.5); }
+            }
+            @keyframes voicePulse {
+                0%, 100% { box-shadow: 0 0 10px rgba(138, 43, 226, 0.5), 0 0 20px rgba(138, 43, 226, 0.3); }
+                50% { box-shadow: 0 0 15px rgba(138, 43, 226, 0.7), 0 0 30px rgba(138, 43, 226, 0.5); }
+            }
+            @keyframes videoPulse {
+                0%, 100% { box-shadow: 0 0 10px rgba(26, 35, 126, 0.5), 0 0 20px rgba(26, 35, 126, 0.3); }
+                50% { box-shadow: 0 0 15px rgba(26, 35, 126, 0.7), 0 0 30px rgba(26, 35, 126, 0.5); }
+            }
+            @keyframes noteFloat {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+            }
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+            .voice-wave {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 30px;
+                gap: 3px;
+            }
+            .voice-wave span {
+                display: block;
+                width: 3px;
+                height: 15px;
+                background: linear-gradient(to top, #9b59b6, #8e44ad);
+                border-radius: 3px;
+                animation: wave 1.5s ease-in-out infinite;
+            }
+            .voice-wave span:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .voice-wave span:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            .voice-wave span:nth-child(4) {
+                animation-delay: 0.6s;
+            }
+            .voice-wave span:nth-child(5) {
+                animation-delay: 0.8s;
+            }
+            @keyframes wave {
+                0%, 100% {
+                    height: 8px;
+                }
+                50% {
+                    height: 20px;
+                }
+            }
+            .card-flip {
+                transform-style: preserve-3d;
+                transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .card-flip.flipped {
+                transform: rotateY(180deg);
+            }
+            .card-front, .card-back {
+                backface-visibility: hidden;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+            .card-front {
+                transform: rotateY(180deg);
+            }
+            .perspective-1000 {
+                perspective: 1000px;
+            }
+            .video-player {
+                position: relative;
+                padding-bottom: 56.25%; /* 16:9 */
+                height: 0;
+                overflow: hidden;
+                max-width: 100%;
+                background: #000;
+            }
+            .video-player iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+            .tab {
+                padding: 8px 16px;
+                border-radius: 20px;
+                background: rgba(139, 0, 0, 0.2);
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+            .tab.active {
+                background: #8B0000;
+                color: white;
+            }
+            /* 新增的拖拽区域样式 */
+            .drag-handle {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 20px;
+                cursor: move;
+                z-index: 10;
+            }
+            /* 用户登录模态框样式 */
+            .user-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 100;
+                /* 修复：添加默认隐藏状态 */
+                display: none; 
+            }
+            .user-modal.show {
+                display: flex;
+            }
+            .user-modal-content {
+                background-color: #380C15;
+                padding: 2rem;
+                border-radius: 0.5rem;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
+                border: 1px solid #8B0000;
+            }
+            .user-modal h2 {
+                color: white;
+                margin-bottom: 1.5rem;
+                text-align: center;
+                font-size: 1.5rem;
+            }
+            .user-input-group {
+                margin-bottom: 1rem;
+            }
+            .user-input-group label {
+                display: block;
+                color: white;
+                margin-bottom: 0.5rem;
+            }
+            .user-input-group input {
+                width: 100%;
+                padding: 0.5rem;
+                border-radius: 0.25rem;
+                border: 1px solid #8B0000;
+                background-color: #121212;
+                color: white;
+            }
+            .user-modal-buttons {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 1.5rem;
+            }
+            .user-modal-buttons button {
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .user-modal-buttons button:first-child {
+                background-color: #8B0000;
+                color: white;
+                border: none;
+            }
+            .user-modal-buttons button:first-child:hover {
+                background-color: #FF4D4D;
+            }
+            .user-modal-buttons button:last-child {
+                background-color: transparent;
+                color: white;
+                border: 1px solid #8B0000;
+            }
+            .user-modal-buttons button:last-child:hover {
+                background-color: rgba(139, 0, 0, 0.2);
+            }
+            .user-switch {
+                background-color: rgba(139, 0, 0, 0.5);
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                z-index: 101;
+                display: none;
+            }
+            .user-switch.show {
+                display: block;
+            }
+            .user-switch:hover {
+                background-color: rgba(139, 0, 0, 0.8);
+            }
+            .username-display {
+                color: white;
+                padding: 0.5rem 1rem;
+                z-index: 101;
+                display: none;
+            }
+            .username-display.show {
+                display: block;
+            }
+            .error-message {
+                color: #FF4D4D;
+                font-size: 0.8rem;
+                margin-top: 0.25rem;
+                display: none;
+            }
+            .error-message.show {
+                display: block;
+            }
+            /* 登录状态提示 */
+            .login-status {
+                position: fixed;
+                top: 1rem;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                z-index: 200;
+                transition: opacity 0.3s ease;
+                opacity: 0;
+                pointer-events: none;
+            }
+            .login-status.show {
+                opacity: 1;
+            }
+            /* 顶部用户控制栏 */
+            .user-control-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 3rem;
+                background-color: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                padding: 0 1rem;
+                z-index: 60;
+                border-bottom: 1px solid rgba(139, 0, 0, 0.5);
+            }
+        }
+    </style>
+</head>
+<body class="bg-secondary bg-pattern min-h-screen text-white font-sans">
+    <!-- 登录状态提示 -->
+    <div id="loginStatus" class="login-status">
+        <span id="statusMessage"></span>
+    </div>
+    
+    <!-- 顶部用户控制栏 -->
+    <div class="user-control-bar">
+        <!-- 用户名显示 -->
+        <div id="usernameDisplay" class="username-display mr-4">
+            <i class="fa fa-user mr-1"></i><span id="currentUsername"></span>
+        </div>
+        <!-- 用户切换按钮 -->
+        <button id="userSwitchBtn" class="user-switch">
+            <i class="fa fa-user mr-1"></i>切换用户
+        </button>
+    </div>
+    
+    <!-- 装饰性藤蔓顶部 -->
+    <div class="fixed top-12 left-0 w-full h-16 bg-vine/30 z-0"></div>
+    
+    <!-- 导航栏 -->
+    <nav class="bg-dark/80 backdrop-blur-md border-b border-primary/30 sticky top-12 z-50 relative">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-diamond text-accent text-2xl ruby-glow"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-white">WOOZI<span class="text-accent">GACHA</span></h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="homeBtn" class="px-4 py-2 rounded-md hover:bg-primary/20 transition-all duration-300">
+                    <i class="fa fa-home mr-1"></i> 首页
+                </button>
+                <button id="collectionBtn" class="px-4 py-2 rounded-md hover:bg-primary/20 transition-all duration-300 relative">
+                    <i class="fa fa-book mr-1"></i> 卡片收藏
+                    <span id="collectionCount" class="absolute -top-1 -right-1 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </button>
+                <button id="videoCollectionBtn" class="px-4 py-2 rounded-md hover:bg-primary/20 transition-all duration-300 relative">
+                    <i class="fa fa-video-camera mr-1"></i> 直拍收藏
+                    <span id="videoCollectionCount" class="absolute -top-1 -right-1 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </button>
+            </div>
+        </div>
+        <!-- 导航栏装饰 -->
+        <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-transparent to-accent"></div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8 relative z-10">
+        <!-- 欢迎区域 -->
+        <section id="welcomeSection" class="py-12 text-center relative">
+            <div class="max-w-3xl mx-auto vine-border">
+                <h2 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-accent relative z-10">
+                    李知勋抽卡小游戏
+                </h2>
+                <!-- 装饰性十字架 -->
+                <div class="absolute -top-10 -right-10 w-20 h-20 text-vine/50 cross-decoration">
+                    <i class="fa fa-cross text-5xl"></i>
+                </div>
+                <!-- 红宝石装饰 -->
+                <div class="absolute -bottom-8 -left-8 w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center ruby-glow z-20">
+                    <i class="fa fa-diamond text-accent text-2xl"></i>
+                </div>
+                
+                <!-- 使用本地图片 - 已替换为hero_image -->
+                <div class="mb-8 rounded-xl overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-[1.02] vine-border">
+                    <img src="img/hero_image.jpg" alt="李知勋形象图" class="w-full h-auto object-cover max-h-[500px]">
+                    <!-- 图片上的吉他装饰 -->
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 text-accent/20 opacity-70">
+                        <i class="fa fa-music text-4xl"></i>
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4 mt-10">
+                    <button id="startCardBtn" class="px-8 py-3 bg-primary hover:bg-accent text-white rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 vine-border">
+                        <i class="fa fa-gamepad mr-2"></i>开始抽卡
+                    </button>
+                    <button id="startVideoBtn" class="px-8 py-3 bg-primary hover:bg-accent text-white rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 vine-border">
+                        <i class="fa fa-video-camera mr-2"></i>抽直拍封面
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 卡片抽卡区域 -->
+        <section id="gachaSection" class="py-12 hidden relative">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-10 vine-border">
+                    <h2 class="text-3xl font-bold mb-2">WOOZI卡池</h2>
+                    <p class="text-gray-400">抽取不同造型的李知勋卡片</p>
+                    <!-- 音符装饰 -->
+                    <div class="note-decoration absolute -top-5 left-1/4 transform -translate-x-1/2">
+                        <i class="fa fa-music text-2xl text-accent/50"></i>
+                    </div>
+                    <div class="note-decoration absolute -top-5 right-1/4 transform -translate-x-1/2">
+                        <i class="fa fa-music text-2xl text-accent/50"></i>
+                    </div>
+                </div>
+                
+                <!-- 抽卡动画区域 -->
+                <div class="relative h-[300px] md:h-[400px] flex items-center justify-center mb-10 overflow-hidden rounded-xl border border-primary/40 bg-dark/50 vine-border">
+                    <div id="gachaAnimation" class="relative w-48 h-64 perspective-1000">
+                        <div id="card" class="card-flip relative w-full h-full cursor-pointer">
+                            <div class="card-front absolute w-full h-full bg-white rounded-lg overflow-hidden flex items-center justify-center">
+                                <!-- 卡片正面内容会在抽到卡后显示 -->
+                            </div>
+                            <div class="card-back absolute w-full h-full bg-gradient-to-br from-secondary to-primary rounded-lg overflow-hidden border-4 border-accent/30 flex flex-col items-center justify-center p-4 relative vine-border">
+                                <!-- 卡背装饰元素 -->
+                                <div class="absolute top-0 left-0 w-full h-full">
+                                    <!-- 藤蔓边框 -->
+                                    <div class="absolute top-0 left-0 w-1 h-full bg-vine/50"></div>
+                                    <div class="absolute top-0 right-0 w-1 h-full bg-vine/50"></div>
+                                    <div class="absolute bottom-0 left-0 w-full h-1 bg-vine/50"></div>
+                                    <div class="absolute top-0 left-0 w-full h-1 bg-vine/50"></div>
+                                    
+                                    <!-- 装饰性藤蔓 -->
+                                    <div class="absolute top-10 left-4 w-6 h-12 bg-vine/30 rounded-full rotate-12"></div>
+                                    <div class="absolute top-20 left-8 w-6 h-8 bg-vine/30 rounded-full rotate-12"></div>
+                                    <div class="absolute bottom-10 right-4 w-6 h-12 bg-vine/30 rounded-full -rotate-12"></div>
+                                    <div class="absolute bottom-20 right-8 w-6 h-8 bg-vine/30 rounded-full -rotate-12"></div>
+                                    
+                                    <!-- 红宝石装饰 -->
+                                    <div class="absolute -top-4 -right-4 w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center ruby-glow">
+                                        <i class="fa fa-diamond text-accent text-2xl"></i>
+                                    </div>
+                                    <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center ruby-glow">
+                                        <i class="fa fa-diamond text-accent text-2xl"></i>
+                                    </div>
+                                </div>
+                
+                                <h3 class="text-2xl font-bold text-white mb-2 relative z-10">RUBY</h3>
+                                <div class="w-24 h-24 mb-2 rounded-full bg-accent/20 flex items-center justify-center relative z-10">
+                                    <span class="text-3xl font-bold">WOOZI</span>
+                                    <!-- 中央红宝石 -->
+                                    <div class="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center ruby-glow z-20">
+                                        <i class="fa fa-diamond text-white text-xs"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-white/80 text-center relative z-10">SEVENTEEN</p>
+                                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-10 h-1 bg-accent/50 rounded-full"></div>
+                
+                                <!-- 音符装饰 -->
+                                <div class="note-decoration absolute top-8 left-8 text-accent/50 z-10">
+                                    <i class="fa fa-music text-xl"></i>
+                                </div>
+                                <div class="note-decoration absolute bottom-8 right-8 text-accent/50 z-10">
+                                    <i class="fa fa-music text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 闪光效果 -->
+                    <div id="shineEffect" class="absolute inset-0 gacha-shine hidden"></div>
+                </div>
+                
+                <!-- 抽卡按钮 -->
+                <div class="flex justify-center space-x-4 mt-10">
+                    <button id="gachaSingleBtn" class="px-6 py-3 bg-primary hover:bg-accent text-white rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 vine-border">
+                        <i class="fa fa-random mr-2"></i>单抽
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 直拍抽卡区域 -->
+        <section id="videoGachaSection" class="py-12 hidden relative">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-10 vine-border">
+                    <h2 class="text-3xl font-bold mb-2">直拍封面池</h2>
+                    <p class="text-gray-400">抽取李知勋的直拍封面</p>
+                    <!-- 音符装饰 -->
+                    <div class="note-decoration absolute -top-5 left-1/4 transform -translate-x-1/2">
+                        <i class="fa fa-video-camera text-2xl text-accent/50"></i>
+                    </div>
+                    <div class="note-decoration absolute -top-5 right-1/4 transform -translate-x-1/2">
+                        <i class="fa fa-video-camera text-2xl text-accent/50"></i>
+                    </div>
+                </div>
+                
+                <!-- 抽直拍动画区域 -->
+                <div class="relative h-[300px] md:h-[400px] flex items-center justify-center mb-10 overflow-hidden rounded-xl border border-primary/40 bg-dark/50 vine-border">
+                    <div id="videoGachaAnimation" class="relative w-48 h-64 perspective-1000">
+                        <div id="videoCard" class="card-flip relative w-full h-full cursor-pointer">
+                            <div class="card-front absolute w-full h-full bg-white rounded-lg overflow-hidden flex items-center justify-center">
+                                <!-- 卡片正面内容会在抽到后显示 -->
+                            </div>
+                            <div class="card-back absolute w-full h-full bg-gradient-to-br from-secondary to-primary rounded-lg overflow-hidden border-4 border-accent/30 flex flex-col items-center justify-center p-4 relative vine-border">
+                                <!-- 卡背装饰元素 -->
+                                <div class="absolute top-0 left-0 w-full h-full">
+                                    <!-- 边框 -->
+                                    <div class="absolute top-0 left-0 w-1 h-full bg-vine/50"></div>
+                                    <div class="absolute top-0 right-0 w-1 h-full bg-vine/50"></div>
+                                    <div class="absolute bottom-0 left-0 w-full h-1 bg-vine/50"></div>
+                                    <div class="absolute top-0 left-0 w-full h-1 bg-vine/50"></div>
+                                    
+                                    <!-- 装饰性元素 -->
+                                    <div class="absolute top-10 left-4 w-6 h-12 bg-vine/30 rounded-full rotate-12"></div>
+                                    <div class="absolute top-20 left-8 w-6 h-8 bg-vine/30 rounded-full rotate-12"></div>
+                                    <div class="absolute bottom-10 right-4 w-6 h-12 bg-vine/30 rounded-full -rotate-12"></div>
+                                    <div class="absolute bottom-20 right-8 w-6 h-8 bg-vine/30 rounded-full -rotate-12"></div>
+                                    
+                                    <!-- 播放按钮装饰 -->
+                                    <div class="absolute -top-4 -right-4 w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center ruby-glow">
+                                        <i class="fa fa-play text-accent text-2xl"></i>
+                                    </div>
+                                    <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center ruby-glow">
+                                        <i class="fa fa-play text-accent text-2xl"></i>
+                                    </div>
+                                </div>
+                
+                                <h3 class="text-2xl font-bold text-white mb-2 relative z-10">直拍</h3>
+                                <div class="w-24 h-24 mb-2 rounded-full bg-accent/20 flex items-center justify-center relative z-10">
+                                    <span class="text-3xl font-bold">VIDEO</span>
+                                    <!-- 中央播放按钮 -->
+                                    <div class="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center ruby-glow z-20">
+                                        <i class="fa fa-play text-white text-xs"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-white/80 text-center relative z-10">WOOZI</p>
+                                <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-10 h-1 bg-accent/50 rounded-full"></div>
+                
+                                <!-- 播放按钮装饰 -->
+                                <div class="note-decoration absolute top-8 left-8 text-accent/50 z-10">
+                                    <i class="fa fa-play text-xl"></i>
+                                </div>
+                                <div class="note-decoration absolute bottom-8 right-8 text-accent/50 z-10">
+                                    <i class="fa fa-play text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 闪光效果 -->
+                    <div id="videoShineEffect" class="absolute inset-0 gacha-shine hidden"></div>
+                </div>
+                
+                <!-- 抽直拍按钮 -->
+                <div class="flex justify-center space-x-4 mt-10">
+                    <button id="gachaVideoBtn" class="px-6 py-3 bg-primary hover:bg-accent text-white rounded-md shadow-lg transition-all duration-300 transform hover:scale-105 vine-border">
+                        <i class="fa fa-video-camera mr-2"></i>抽直拍封面
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 收藏区域 -->
+        <section id="collectionSection" class="py-12 hidden relative">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-8 vine-border">
+                    <h2 class="text-3xl font-bold mb-2">我的收藏</h2>
+                    <p class="text-gray-400">已收集 <span id="displayCollectionCount" class="text-accent">0</span> 张卡片</p>
+                </div>
+                
+                <!-- 收藏展示网格 -->
+                <div id="collectionGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    <!-- 收藏的卡片会动态添加到这里 -->
+                    <div class="col-span-full text-center py-16 text-gray-500">
+                        <i class="fa fa-inbox text-5xl mb-4"></i>
+                        <p class="text-lg">暂无收藏卡片</p>
+                        <p class="text-sm mt-2">去抽卡获得李知勋的精美卡片吧</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 直拍收藏区域 -->
+        <section id="videoCollectionSection" class="py-12 hidden relative">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-8 vine-border">
+                    <h2 class="text-3xl font-bold mb-2">直拍收藏</h2>
+                    <p class="text-gray-400">已收集 <span id="displayVideoCollectionCount" class="text-accent">0</span> 个直拍封面</p>
+                </div>
+                
+                <!-- 直拍收藏展示网格 -->
+                <div id="videoCollectionGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    <!-- 收藏的直拍封面会动态添加到这里 -->
+                    <div class="col-span-full text-center py-16 text-gray-500">
+                        <i class="fa fa-inbox text-5xl mb-4"></i>
+                        <p class="text-lg">暂无收藏直拍</p>
+                        <p class="text-sm mt-2">去抽取李知勋的直拍封面吧</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark/80 backdrop-blur-md border-t border-primary/30 py-6 mt-12 relative">
+        <div class="container mx-auto px-4 text-center text-gray-400 text-sm vine-border">
+            <p>© 2025 WOOZI GACHA. 仅供娱乐使用。</p>
+            <p class="mt-2">李知勋相关形象和名称属于其合法所有者。</p>
+        </div>
+        <!-- 页脚装饰 -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-transparent to-accent"></div>
+    </footer>
+    
+    <!-- 音乐控制栏 - 添加拖拽功能 -->
+    <div id="musicControl" class="music-control fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 bg-dark/80 backdrop-blur-md border border-primary/30 rounded-full px-6 py-3 flex items-center space-x-4 max-w-md w-full">
+        <!-- 拖拽手柄 -->
+        <div class="drag-handle"></div>
+        <div class="flex items-center space-x-2">
+            <i class="fa fa-music text-accent text-xl"></i>
+            <span id="currentSong" class="text-sm font-medium">背景音乐</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button id="prevSong" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-primary/30 transition-colors">
+                <i class="fa fa-step-backward"></i>
+            </button>
+            <button id="playPause" class="w-10 h-10 flex items-center justify-center rounded-full bg-accent hover:bg-accent/80 transition-colors">
+                <i class="fa fa-pause"></i>
+            </button>
+            <button id="nextSong" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-primary/30 transition-colors">
+                <i class="fa fa-step-forward"></i>
+            </button>
+        </div>
+        <div class="w-24">
+            <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5" class="w-full accent-accent">
+        </div>
+    </div>
+
+    <!-- 抽到的卡片详情模态框 -->
+    <div id="cardModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary rounded-lg max-w-md w-full mx-4 overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalContent" vine-border>
+            <div class="relative">
+                <img id="modalCardImage" src="" alt="李知勋卡片" class="w-full h-auto">
+                <button id="closeModalBtn" class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all z-10">
+                    <i class="fa fa-times"></i>
+                </button>
+                <!-- 模态框红宝石装饰 -->
+                <div class="absolute -top-5 -left-5 w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center ruby-glow z-20">
+                    <i class="fa fa-diamond text-accent text-xl"></i>
+                </div>
+            </div>
+            <div class="p-4 relative z-10"> <!-- 减小了内边距 -->
+                <h3 id="modalCardName" class="text-xl font-bold mb-2">卡片名称</h3>
+                <p id="modalCardDesc" class="text-gray-300 text-sm mb-4">卡片描述</p>
+                
+                <!-- 语音卡播放器（尺寸优化） -->
+                <div id="voicePlayer" class="hidden mb-4 bg-voice/20 p-3 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-white flex items-center text-sm">
+                            <i class="fa fa-microphone text-purple-400 mr-2"></i>专属语音
+                        </h4>
+                        <span class="text-xs bg-purple-600 text-white px-2 py-0.5 rounded">VOICE</span>
+                    </div>
+                    <div class="voice-wave">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="mt-2 flex justify-center">
+                        <button id="playVoiceBtn" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded transition-all flex items-center text-sm">
+                            <i class="fa fa-play mr-1"></i>播放语音
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button id="addToCollectionBtn" class="px-4 py-2 bg-accent hover:bg-accent/80 text-white rounded transition-all vine-border">
+                        <i class="fa fa-heart mr-1"></i>加入收藏
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 直拍视频播放模态框 -->
+    <div id="videoModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden">
+        <div class="bg-secondary rounded-lg max-w-2xl w-full mx-4 overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="videoModalContent" vine-border>
+            <div class="relative p-1">
+                <div class="video-player">
+                    <iframe id="videoPlayer" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <button id="closeVideoModalBtn" class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all z-10">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4"> <!-- 减小了内边距 -->
+                <h3 id="videoTitle" class="text-xl font-bold mb-2">直拍标题</h3>
+                <p id="videoDesc" class="text-gray-300 text-sm mb-4">直拍描述</p>
+                <div class="flex justify-center">
+                    <button id="addToVideoCollectionBtn" class="px-4 py-2 bg-accent hover:bg-accent/80 text-white rounded transition-all vine-border">
+                        <i class="fa fa-heart mr-1"></i>加入收藏
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户登录模态框 -->
+    <div id="userModal" class="user-modal show">
+        <div class="user-modal-content vine-border">
+            <h2>用户登录</h2>
+            <div class="user-input-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="输入用户名" value="testuser">
+                <div id="usernameError" class="error-message"></div>
+            </div>
+            <div class="user-input-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="输入密码" value="testpass">
+                <div id="passwordError" class="error-message"></div>
+            </div>
+            <div class="user-modal-buttons">
+                <button id="loginBtn">登录</button>
+                <button id="registerBtn">注册</button>
+            </div>
+            <div class="mt-4 text-center text-sm text-gray-400">
+                <p>测试账号: testuser / testpass</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟卡片数据 - 使用本地图片路径
+        const cardData = [
+            {
+                id: 1,
+                name: "白毛可爱勋",
+                image: "img/card1.jpg",
+                description: "专注创作的Woozi，在录音室里展现音乐才华。",
+                voiceUrl: null
+            },
+            {
+                id: 2,
+                name: "super勋",
+                image: "img/card2.jpg",
+                description: "在舞台上绽放光芒的主唱Woozi，魅力四射。",
+                voiceUrl: null
+            },
+            {
+                id: 3,
+                name: "金长漂亮勋",
+                image: "img/card3.jpg",
+                description: "生活中的Woozi，展现温柔的一面。",
+                voiceUrl: null
+            },
+            {
+                id: 4,
+                name: "黑发红唇",
+                image: "img/card4.jpg",
+                description: "独特造型的Woozi，散发着神秘的魅力。",
+                voiceUrl: null
+            },
+            {
+                id: 5,
+                name: "创意总监",
+                image: "img/card5.jpg",
+                description: "作为创意总监的Woozi，展现专业的一面。",
+                voiceUrl: null
+            },
+            {
+                id: 6,
+                name: "温柔钢琴家",
+                image: "img/card6.jpg",
+                description: "坐在钢琴前的Woozi，指尖流淌出美妙的旋律。",
+                voiceUrl: null
+            },
+            {
+                id: 7,
+                name: "演唱会现场",
+                image: "img/card7.jpg",
+                description: "在演唱会上激情表演的Woozi，点燃全场气氛。",
+                voiceUrl: null
+            },
+            {
+                id: 8,
+                name: "工作室日常",
+                image: "img/card8.jpg",
+                description: "在工作室中认真工作的Woozi，专注于音乐创作。",
+                voiceUrl: null
+            },
+            {
+                id: 9,
+                name: "杂志封面",
+                image: "img/card91.jpg",
+                description: "登上杂志封面的Woozi，展现时尚魅力。",
+                voiceUrl: null
+            },
+            {
+                id: 10,
+                name: "幕后花絮",
+                image: "img/card10.jpg",
+                description: "拍摄幕后的Woozi，展现真实的一面。",
+                voiceUrl: null
+            },
+            // 新增语音卡
+            {
+                id: 11,
+                name: "创作心声",
+                image: "img/card11.jpg",
+                description: "Woozi分享他的创作过程和音乐理念。",
+                voiceUrl: "voice/111.mp3",
+                isVoiceCard: true
+            },
+            {
+                id: 12,
+                name: "舞台问候",
+                image: "img/card12.jpg",
+                description: "Woozi在演唱会上的特别问候和感谢。",
+                voiceUrl: "voice/111.mp3",
+                isVoiceCard: true
+            },
+            {
+                id: 13,
+                name: "粉丝留言",
+                image: "img/card13.jpg",
+                description: "Woozi对粉丝们的暖心留言和鼓励。",
+                voiceUrl: "voice/111.mp3",
+                isVoiceCard: true
+            },
+            {
+                id: 14,
+                name: "音乐制作人",
+                image: "img/card14.jpg",
+                description: "在录音室创作音乐的制作人Woozi。",
+                voiceUrl: null
+            },
+            {
+                id: 15,
+                name: "特别舞台",
+                image: "img/card91.jpg",
+                description: "特别舞台表演中的Woozi，魅力无限。",
+                voiceUrl: null
+            }
+        ];
+        
+        // 直拍封面数据 - 使用本地图片路径
+        const videoData = [
+            {
+                id: 1,
+                name: "Ruby 直拍",
+                image: "fm/1.横版(Av825506629,...).jpg",
+                description: "李知勋Ruby直拍舞台，展现完美舞台魅力",
+                videoUrl: "sp/1.横版(Av825506629,...).mp4"
+            },
+            {
+                id: 2,
+                name: "Home 直拍",
+                image: "fm/2.横版(Av825506629,...).jpg",
+                description: "李知勋Home直拍，温暖治愈的舞台表现",
+                videoUrl: "sp/2.横版(Av825506629,...).mp4"
+            },
+            {
+                id: 3,
+                name: "Rock with you 直拍",
+                image: "fm/3.横版(Av825506629,...).jpg",
+                description: "摇滚风格直拍，展现力量与激情",
+                videoUrl: "sp/3.横版(Av825506629,...).mp4"
+            },
+            {
+                id: 4,
+                name: "HOT 直拍",
+                image: "fm/4.横版(Av825506629,...).jpg",
+                description: "李知勋HOT舞台直拍，热力四射的表演",
+                videoUrl: "sp/4.横版(Av825506629,...).mp4"
+            },
+            {
+                id: 5,
+                name: "Fear 直拍",
+                image: "fm/5.横版(Av825506629,...).jpg",
+                description: "Fear舞台直拍，神秘而深情的表演",
+                videoUrl: "sp/5.横版(Av825506629,...).mp4"
+            },
+            {
+                id: 6,
+                name: "Darl+ing 直拍",
+                image: "fm/6.横版(Av825506629,...).jpg",
+                description: "Darl+ing直拍舞台，甜蜜浪漫的表演",
+                videoUrl: "sp/6.横版(Av825506629,...).mp4"
+            }
+        ];
+        
+        // 背景音乐数据 - 使用本地音乐路径
+        const backgroundMusic = [
+            {
+                id: 1,
+                name: "Circles",
+                src: "music/Circles.mp3"
+            },
+            {
+                id: 2,
+                name: "Heaven's Cloud",
+                src: "music/Heaven ' s Cloud.mp3"
+            },
+            {
+                id: 3,
+                name: "抒情吉他曲",
+                src: "music/111.mp3"
+            }
+        ];
+
+        // 用户系统
+        let users = JSON.parse(localStorage.getItem('wooziGachaUsers')) || [];
+        let currentUser = null;
+        let collection = [];
+        let videoCollection = [];
+        let currentMusicIndex = 0; // 当前播放的音乐索引
+        let isMusicPlaying = true; // 音乐播放状态
+        let voiceAudio = null; // 语音卡片音频
+        let currentCard = null; // 当前显示的卡片
+        let currentVideo = null; // 当前显示的直拍
+        
+        // DOM 元素
+        const welcomeSection = document.getElementById('welcomeSection');
+        const gachaSection = document.getElementById('gachaSection');
+        const videoGachaSection = document.getElementById('videoGachaSection');
+        const collectionSection = document.getElementById('collectionSection');
+        const videoCollectionSection = document.getElementById('videoCollectionSection');
+        const homeBtn = document.getElementById('homeBtn');
+        const collectionBtn = document.getElementById('collectionBtn');
+        const videoCollectionBtn = document.getElementById('videoCollectionBtn');
+        const startCardBtn = document.getElementById('startCardBtn');
+        const startVideoBtn = document.getElementById('startVideoBtn');
+        const cardModal = document.getElementById('cardModal');
+        const videoModal = document.getElementById('videoModal');
+        const modalContent = document.getElementById('modalContent');
+        const videoModalContent = document.getElementById('videoModalContent');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const closeVideoModalBtn = document.getElementById('closeVideoModalBtn');
+        const addToCollectionBtn = document.getElementById('addToCollectionBtn');
+        const addToVideoCollectionBtn = document.getElementById('addToVideoCollectionBtn');
+        const modalCardImage = document.getElementById('modalCardImage');
+        const modalCardName = document.getElementById('modalCardName');
+        const modalCardDesc = document.getElementById('modalCardDesc');
+        const collectionGrid = document.getElementById('collectionGrid');
+        const videoCollectionGrid = document.getElementById('videoCollectionGrid');
+        const collectionCount = document.getElementById('collectionCount');
+        const videoCollectionCount = document.getElementById('videoCollectionCount');
+        const displayCollectionCount = document.getElementById('displayCollectionCount');
+        const displayVideoCollectionCount = document.getElementById('displayVideoCollectionCount');
+        const playPauseBtn = document.getElementById('playPause');
+        const prevSongBtn = document.getElementById('prevSong');
+        const nextSongBtn = document.getElementById('nextSong');
+        const volumeControl = document.getElementById('volumeControl');
+        const currentSongDisplay = document.getElementById('currentSong');
+        const voicePlayer = document.getElementById('voicePlayer');
+        const playVoiceBtn = document.getElementById('playVoiceBtn');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoTitle = document.getElementById('videoTitle');
+        const videoDesc = document.getElementById('videoDesc');
+        const gachaSingleBtn = document.getElementById('gachaSingleBtn');
+        const gachaVideoBtn = document.getElementById('gachaVideoBtn');
+        const musicControl = document.getElementById('musicControl'); // 音乐控制栏
+        const userModal = document.getElementById('userModal');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const userSwitchBtn = document.getElementById('userSwitchBtn');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const currentUsername = document.getElementById('currentUsername');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const loginStatus = document.getElementById('loginStatus');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // 创建音频元素
+        const audioElement = document.createElement('audio');
+        document.body.appendChild(audioElement);
+
+        // 显示状态消息
+        function showStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            loginStatus.classList.add('show');
+            loginStatus.style.backgroundColor = isError ? 'rgba(255, 77, 77, 0.8)' : 'rgba(56, 161, 105, 0.8)';
+            
+            setTimeout(() => {
+                loginStatus.classList.remove('show');
+            }, 3000);
+        }
+
+        // 更新收藏计数
+        function updateCollectionCounts() {
+            const cardCount = collection.length;
+            const videoCount = videoCollection.length;
+            collectionCount.textContent = cardCount;
+            videoCollectionCount.textContent = videoCount;
+            displayCollectionCount.textContent = cardCount;
+            displayVideoCollectionCount.textContent = videoCount;
+        }
+        
+        // 显示卡片收藏
+        function displayCardCollection() {
+            if (collection.length === 0) {
+                collectionGrid.innerHTML = `
+                    <div class="col-span-full text-center py-16 text-gray-500">
+                        <i class="fa fa-inbox text-5xl mb-4"></i>
+                        <p class="text-lg">暂无收藏卡片</p>
+                        <p class="text-sm mt-2">去抽卡获得李知勋的精美卡片吧</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            collectionGrid.innerHTML = '';
+            collection.forEach(card => {
+                const isVoiceCard = card.isVoiceCard || false;
+                const cardElement = document.createElement('div');
+                cardElement.className = `card-hover rounded-lg overflow-hidden border ${
+                    isVoiceCard ? 'border-purple-500/40 bg-voice/10 voice-card-hover' : 'border-primary/20 bg-dark/30'
+                } vine-border cursor-pointer`;
+                
+                cardElement.innerHTML = `
+                    <div class="relative overflow-hidden aspect-[3/4]">
+                        <img src="${card.image}" alt="${card.name}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <div class="p-3 w-full">
+                                <h4 class="font-bold text-white text-sm">${card.name}</h4>
+                                <div class="flex justify-center">
+                                    ${isVoiceCard ? 
+                                        '<span class="text-xs bg-purple-600 text-white px-2 py-0.5 rounded">VOICE</span>' 
+                                        : '' 
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 收藏卡片上的小装饰 -->
+                        <div class="absolute top-3 right-3 w-8 h-8 ${
+                            isVoiceCard ? 'bg-purple-600/40 text-purple-300' : 'bg-accent/20 text-accent/70'
+                        } rounded-full flex items-center justify-center ${isVoiceCard ? 'voice-glow' : 'ruby-glow'}">
+                            <i class="fa ${
+                                isVoiceCard ? 'fa-microphone' : 'fa-star'
+                            } text-xs"></i>
+                        </div>
+                    </div>
+                `;
+                
+                // 为收藏卡片添加点击事件
+                cardElement.addEventListener('click', () => {
+                    showCardDetails(card);
+                });
+                
+                collectionGrid.appendChild(cardElement);
+            });
+        }
+        
+        // 显示直拍收藏
+        function displayVideoCollection() {
+            if (videoCollection.length === 0) {
+                videoCollectionGrid.innerHTML = `
+                    <div class="col-span-full text-center py-16 text-gray-500">
+                        <i class="fa fa-inbox text-5xl mb-4"></i>
+                        <p class="text-lg">暂无收藏直拍</p>
+                        <p class="text-sm mt-2">去抽取李知勋的直拍封面吧</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            videoCollectionGrid.innerHTML = '';
+            videoCollection.forEach(video => {
+                const videoElement = document.createElement('div');
+                videoElement.className = `video-card-hover rounded-lg overflow-hidden border border-primary/40 bg-dark/30 cursor-pointer vine-border`;
+                
+                videoElement.innerHTML = `
+                    <div class="relative overflow-hidden aspect-[3/4]">
+                        <img src="${video.image}" alt="${video.name}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <div class="p-3 w-full">
+                                <h4 class="font-bold text-white text-sm">${video.name}</h4>
+                                <div class="flex justify-center">
+                                    <span class="text-xs bg-accent text-white px-2 py-0.5 rounded">VIDEO</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 播放按钮装饰 -->
+                        <div class="absolute top-3 right-3 w-8 h-8 bg-accent/40 text-accent/70 rounded-full flex items-center justify-center ruby-glow">
+                            <i class="fa fa-play text-xs"></i>
+                        </div>
+                    </div>
+                `;
+                
+                // 为收藏直拍添加点击事件
+                videoElement.addEventListener('click', () => {
+                    showVideoDetails(video);
+                });
+                
+                videoCollectionGrid.appendChild(videoElement);
+            });
+        }
+        
+        // 随机获取一张卡片
+        function getRandomCard() {
+            // 增加语音卡抽到的概率（20%概率抽到语音卡）
+            const isVoiceCard = Math.random() < 0.2;
+            
+            if (isVoiceCard) {
+                // 从语音卡中随机选择一张
+                const voiceCards = cardData.filter(card => card.isVoiceCard);
+                return voiceCards[Math.floor(Math.random() * voiceCards.length)];
+            } else {
+                // 从普通卡中随机选择一张
+                const normalCards = cardData.filter(card => !card.isVoiceCard);
+                return normalCards[Math.floor(Math.random() * normalCards.length)];
+            }
+        }
+        
+        // 随机获取一个直拍
+        function getRandomVideo() {
+            return videoData[Math.floor(Math.random() * videoData.length)];
+        }
+        
+        // 显示卡片详情
+        function showCardDetails(card) {
+            currentCard = card; // 保存当前卡片
+            modalCardImage.src = card.image;
+            modalCardImage.alt = card.name;
+            modalCardName.textContent = card.name;
+            modalCardDesc.textContent = card.description;
+            
+            // 检查是否已收藏
+            const isCollected = collection.some(item => item.id === card.id);
+            addToCollectionBtn.disabled = isCollected;
+            addToCollectionBtn.innerHTML = isCollected ? 
+                '<i class="fa fa-check mr-1"></i>已收藏' : 
+                '<i class="fa fa-heart mr-1"></i>加入收藏';
+            
+            // 如果是语音卡，显示语音播放器
+            if (card.isVoiceCard) {
+                voicePlayer.classList.remove('hidden');
+                playVoiceBtn.innerHTML = '<i class="fa fa-play mr-1"></i>播放语音';
+            } else {
+                voicePlayer.classList.add('hidden');
+            }
+            
+            // 显示模态框
+            cardModal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        
+        // 显示直拍详情
+        function showVideoDetails(video) {
+            currentVideo = video;
+            videoTitle.textContent = video.name;
+            videoDesc.textContent = video.description;
+            
+            // 检查是否已收藏
+            const isCollected = videoCollection.some(item => item.id === video.id);
+            addToVideoCollectionBtn.disabled = isCollected;
+            addToVideoCollectionBtn.innerHTML = isCollected ? 
+                '<i class="fa fa-check mr-1"></i>已收藏' : 
+                '<i class="fa fa-heart mr-1"></i>加入收藏';
+            
+            // 设置视频 - 使用video元素而不是iframe
+            if (videoPlayer.tagName === 'VIDEO') {
+                videoPlayer.src = video.videoUrl;
+            } else {
+                // 如果之前是iframe，替换为video元素
+                const playerContainer = document.querySelector('.video-player');
+                playerContainer.innerHTML = `
+                    <video id="videoPlayer" controls class="w-full h-full">
+                        <source src="${video.videoUrl}" type="video/mp4">
+                        您的浏览器不支持视频播放
+                    </video>
+                `;
+                videoPlayer = document.getElementById('videoPlayer');
+            }
+            
+            // 显示模态框
+            videoModal.classList.remove('hidden');
+            setTimeout(() => {
+                videoModalContent.classList.remove('scale-95', 'opacity-0');
+                videoModalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        
+        // 播放语音卡
+        function playVoiceCard(card) {
+            if (!card.voiceUrl) return;
+            
+            // 停止当前语音
+            if (voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio = null;
+            }
+            
+            // 创建新的音频对象
+            voiceAudio = new Audio(card.voiceUrl);
+            voiceAudio.play();
+            
+            // 更新按钮状态
+            playVoiceBtn.innerHTML = '<i class="fa fa-pause mr-1"></i>暂停语音';
+            
+            // 监听播放结束
+            voiceAudio.onended = () => {
+                playVoiceBtn.innerHTML = '<i class="fa fa-play mr-1"></i>播放语音';
+            };
+        }
+        
+        // 添加到卡片收藏
+        function addToCardCollection(card) {
+            if (!card) return;
+            
+            if (collection.some(item => item.id === card.id)) {
+                return;
+            }
+            
+            // 使用原始卡片对象加入收藏
+            collection.push({
+                ...card,
+                date: new Date().toISOString().split('T')[0] // 更新获得日期
+            });
+            
+            // 更新当前用户的收藏数据
+            if (currentUser) {
+                currentUser.collection = collection;
+                currentUser.videoCollection = videoCollection;
+                saveUserData();
+            }
+            
+            updateCollectionCounts();
+            displayCardCollection();
+            
+            // 更新按钮状态
+            addToCollectionBtn.disabled = true;
+            addToCollectionBtn.innerHTML = '<i class="fa fa-check mr-1"></i>已收藏';
+            
+            showStatus('卡片已添加到收藏！');
+        }
+        
+        // 添加到直拍收藏
+        function addToVideoCollection(video) {
+            if (!video) return;
+            
+            if (videoCollection.some(item => item.id === video.id)) {
+                return;
+            }
+            
+            // 使用原始直拍对象加入收藏
+            videoCollection.push({
+                ...video,
+                date: new Date().toISOString().split('T')[0] // 更新获得日期
+            });
+            
+            // 更新当前用户的收藏数据
+            if (currentUser) {
+                currentUser.collection = collection;
+                currentUser.videoCollection = videoCollection;
+                saveUserData();
+            }
+            
+            updateCollectionCounts();
+            displayVideoCollection();
+            
+            // 更新按钮状态
+            addToVideoCollectionBtn.disabled = true;
+            addToVideoCollectionBtn.innerHTML = '<i class="fa fa-check mr-1"></i>已收藏';
+            
+            showStatus('直拍已添加到收藏！');
+        }
+        
+        // 关闭卡片模态框
+        function closeCardModal() {
+            // 停止语音播放
+            if (voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio = null;
+            }
+            
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                cardModal.classList.add('hidden');
+            }, 300);
+        }
+        
+        // 关闭视频模态框
+        function closeVideoModal() {
+            // 停止视频播放
+            if (videoPlayer && videoPlayer.pause) {
+                videoPlayer.pause();
+            }
+            
+            videoModalContent.classList.remove('scale-100', 'opacity-100');
+            videoModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                videoModal.classList.add('hidden');
+            }, 300);
+        }
+        
+        // 切换到欢迎页面
+        function showWelcomePage() {
+            welcomeSection.classList.remove('hidden');
+            gachaSection.classList.add('hidden');
+            videoGachaSection.classList.add('hidden');
+            collectionSection.classList.add('hidden');
+            videoCollectionSection.classList.add('hidden');
+        }
+        
+        // 切换到卡片抽卡页面
+        function showCardGachaPage() {
+            welcomeSection.classList.add('hidden');
+            gachaSection.classList.remove('hidden');
+            videoGachaSection.classList.add('hidden');
+            collectionSection.classList.add('hidden');
+            videoCollectionSection.classList.add('hidden');
+        }
+        
+        // 切换到直拍抽卡页面
+        function showVideoGachaPage() {
+            welcomeSection.classList.add('hidden');
+            gachaSection.classList.add('hidden');
+            videoGachaSection.classList.remove('hidden');
+            collectionSection.classList.add('hidden');
+            videoCollectionSection.classList.add('hidden');
+        }
+        
+        // 切换到卡片收藏页面
+        function showCardCollectionPage() {
+            welcomeSection.classList.add('hidden');
+            gachaSection.classList.add('hidden');
+            videoGachaSection.classList.add('hidden');
+            collectionSection.classList.remove('hidden');
+            videoCollectionSection.classList.add('hidden');
+            displayCardCollection();
+        }
+        
+        // 切换到直拍收藏页面
+        function showVideoCollectionPage() {
+            welcomeSection.classList.add('hidden');
+            gachaSection.classList.add('hidden');
+            videoGachaSection.classList.add('hidden');
+            collectionSection.classList.add('hidden');
+            videoCollectionSection.classList.remove('hidden');
+            displayVideoCollection();
+        }
+        
+        // 卡片抽卡动画
+        function playCardGachaAnimation(card) {
+            const cardElement = document.getElementById('card');
+            const shineEffect = document.getElementById('shineEffect');
+            
+            // 重置卡片状态
+            cardElement.classList.remove('flipped');
+            
+            // 显示闪光效果
+            shineEffect.classList.remove('hidden');
+            
+            // 卡片翻转动画
+            setTimeout(() => {
+                cardElement.classList.add('flipped');
+                
+                // 设置卡片正面内容
+                const cardFront = cardElement.querySelector('.card-front');
+                cardFront.innerHTML = `
+                    <img src="${card.image}" alt="${card.name}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-4">
+                        <h3 class="text-xl font-bold text-white">${card.name}</h3>
+                        <p class="text-sm text-gray-200">${card.description}</p>
+                        ${card.isVoiceCard ? 
+                            `<div class="absolute top-3 right-3 bg-purple-600/80 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                                <i class="fa fa-microphone mr-1"></i>VOICE
+                            </div>` : ''
+                        }
+                    </div>
+                `;
+                
+                // 延迟后显示卡片详情
+                setTimeout(() => {
+                    shineEffect.classList.add('hidden');
+                    showCardDetails(card);
+                }, 1500);
+            }, 800);
+        }
+        
+        // 直拍抽卡动画
+        function playVideoGachaAnimation(video) {
+            const videoCardElement = document.getElementById('videoCard');
+            const shineEffect = document.getElementById('videoShineEffect');
+            
+            // 重置卡片状态
+            videoCardElement.classList.remove('flipped');
+            
+            // 显示闪光效果
+            shineEffect.classList.remove('hidden');
+            
+            // 卡片翻转动画
+            setTimeout(() => {
+                videoCardElement.classList.add('flipped');
+                
+                // 设置卡片正面内容
+                const cardFront = videoCardElement.querySelector('.card-front');
+                cardFront.innerHTML = `
+                    <img src="${video.image}" alt="${video.name}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-4">
+                        <h3 class="text-xl font-bold text-white">${video.name}</h3>
+                        <p class="text-sm text-gray-200">${video.description}</p>
+                        <div class="absolute top-3 right-3 bg-accent/80 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                            <i class="fa fa-video-camera mr-1"></i>VIDEO
+                        </div>
+                    </div>
+                `;
+                
+                // 延迟后显示直拍详情
+                setTimeout(() => {
+                    shineEffect.classList.add('hidden');
+                    showVideoDetails(video);
+                }, 1500);
+            }, 800);
+        }
+        
+        // 单次卡片抽卡
+        function gachaSingleCard() {
+            const card = getRandomCard();
+            playCardGachaAnimation(card);
+        }
+        
+        // 单次直拍抽卡
+        function gachaSingleVideo() {
+            const video = getRandomVideo();
+            playVideoGachaAnimation(video);
+        }
+        
+        // 播放背景音乐
+        function playMusic() {
+            const currentMusic = backgroundMusic[currentMusicIndex];
+            audioElement.src = currentMusic.src;
+            audioElement.volume = volumeControl.value;
+            
+            // 设置歌曲结束自动播放下一首
+            audioElement.onended = () => {
+                nextMusic();
+            };
+            
+            audioElement.play().then(() => {
+                // 播放成功
+                isMusicPlaying = true;
+                playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
+                currentSongDisplay.textContent = currentMusic.name;
+            }).catch(error => {
+                console.error('播放失败:', error);
+                // 自动播放失败，等待用户交互
+                document.addEventListener('click', function tryPlayOnInteraction() {
+                    audioElement.play().then(() => {
+                        isMusicPlaying = true;
+                        playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
+                        document.removeEventListener('click', tryPlayOnInteraction);
+                    }).catch(e => {
+                        console.error('交互后播放失败:', e);
+                    });
+                });
+            });
+        }
+        
+        // 暂停/继续播放音乐
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                audioElement.pause();
+                isMusicPlaying = false;
+                playPauseBtn.innerHTML = '<i class="fa fa-play"></i>';
+            } else {
+                audioElement.play();
+                isMusicPlaying = true;
+                playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
+            }
+        }
+        
+        // 播放上一首音乐
+        function prevMusic() {
+            currentMusicIndex = (currentMusicIndex - 1 + backgroundMusic.length) % backgroundMusic.length;
+            playMusic();
+        }
+        
+        // 播放下一首音乐
+        function nextMusic() {
+            currentMusicIndex = (currentMusicIndex + 1) % backgroundMusic.length;
+            playMusic();
+        }
+        
+        // 设置音量
+        function setVolume() {
+            audioElement.volume = volumeControl.value;
+        }
+        
+        // 音乐播放器拖拽功能
+        function setupMusicControlDrag() {
+            let isDragging = false;
+            let dragOffsetX, dragOffsetY;
+            
+            musicControl.addEventListener('mousedown', startDrag);
+            
+            function startDrag(e) {
+                // 排除按钮区域
+                if (e.target.closest('button') || e.target.closest('input')) {
+                    return;
+                }
+                
+                isDragging = true;
+                const rect = musicControl.getBoundingClientRect();
+                dragOffsetX = e.clientX - rect.left;
+                dragOffsetY = e.clientY - rect.top;
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                const x = e.clientX - dragOffsetX;
+                const y = e.clientY - dragOffsetY;
+                
+                // 限制在可视区域内
+                const maxX = window.innerWidth - musicControl.offsetWidth;
+                const maxY = window.innerHeight - musicControl.offsetHeight;
+                
+                const newX = Math.max(0, Math.min(x, maxX));
+                const newY = Math.max(0, Math.min(y, maxY));
+                
+                musicControl.style.left = `${newX}px`;
+                musicControl.style.bottom = 'auto';
+                musicControl.style.top = `${newY}px`;
+                musicControl.style.transform = 'none';
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+        }
+        
+        // 用户系统功能
+        function saveUserData() {
+            if (!currentUser) return;
+            
+            // 更新用户数据
+            const userIndex = users.findIndex(u => u.username === currentUser.username);
+            if (userIndex !== -1) {
+                users[userIndex] = currentUser;
+            } else {
+                users.push(currentUser);
+            }
+            
+            localStorage.setItem('wooziGachaUsers', JSON.stringify(users));
+        }
+        
+        function login(username, password) {
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                currentUser = user;
+                collection = user.collection || [];
+                videoCollection = user.videoCollection || [];
+                
+                // 隐藏登录模态框 - 修复：使用classList移除show类
+                userModal.classList.remove('show');
+                userSwitchBtn.classList.add('show');
+                usernameDisplay.classList.add('show');
+                currentUsername.textContent = username;
+                
+                // 更新UI
+                updateCollectionCounts();
+                displayCardCollection();
+                displayVideoCollection();
+                
+                // 显示欢迎页面
+                showWelcomePage();
+                
+                showStatus('登录成功！');
+                
+                return true;
+            }
+            return false;
+        }
+        
+        function register(username, password) {
+            // 检查用户名是否已存在
+            if (users.some(u => u.username === username)) {
+                return false;
+            }
+            
+            // 创建新用户
+            const newUser = {
+                username,
+                password,
+                collection: [],
+                videoCollection: []
+            };
+            
+            users.push(newUser);
+            currentUser = newUser;
+            collection = [];
+            videoCollection = [];
+            
+            // 保存用户数据
+            localStorage.setItem('wooziGachaUsers', JSON.stringify(users));
+            
+            // 隐藏登录模态框 - 修复：使用classList移除show类
+            userModal.classList.remove('show');
+            userSwitchBtn.classList.add('show');
+            usernameDisplay.classList.add('show');
+            currentUsername.textContent = username;
+            
+            // 更新UI
+            updateCollectionCounts();
+            displayCardCollection();
+            displayVideoCollection();
+            
+            // 显示欢迎页面
+            showWelcomePage();
+            
+            showStatus('注册成功！');
+            
+            return true;
+        }
+        
+        function logout() {
+            // 保存当前用户数据
+            if (currentUser) {
+                currentUser.collection = collection;
+                currentUser.videoCollection = videoCollection;
+                saveUserData();
+            }
+            
+            // 重置当前用户
+            currentUser = null;
+            collection = [];
+            videoCollection = [];
+            
+            // 显示登录模态框 - 修复：使用classList添加show类
+            userModal.classList.add('show');
+            userSwitchBtn.classList.remove('show');
+            usernameDisplay.classList.remove('show');
+            
+            // 更新UI
+            updateCollectionCounts();
+            displayCardCollection();
+            displayVideoCollection();
+            
+            // 回到欢迎页面
+            showWelcomePage();
+            
+            showStatus('已退出登录');
+        }
+        
+        // 显示错误信息
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.add('show');
+        }
+        
+        // 隐藏错误信息
+        function hideError(element) {
+            element.textContent = '';
+            element.classList.remove('show');
+        }
+        
+        // 事件监听
+        startCardBtn.addEventListener('click', showCardGachaPage);
+        startVideoBtn.addEventListener('click', showVideoGachaPage);
+        homeBtn.addEventListener('click', showWelcomePage);
+        collectionBtn.addEventListener('click', showCardCollectionPage);
+        videoCollectionBtn.addEventListener('click', showVideoCollectionPage);
+        gachaSingleBtn.addEventListener('click', gachaSingleCard);
+        gachaVideoBtn.addEventListener('click', gachaSingleVideo);
+        closeModalBtn.addEventListener('click', closeCardModal);
+        closeVideoModalBtn.addEventListener('click', closeVideoModal);
+        addToCollectionBtn.addEventListener('click', () => {
+            if (currentCard) {
+                addToCardCollection(currentCard);
+            }
+        });
+        addToVideoCollectionBtn.addEventListener('click', () => {
+            if (currentVideo) {
+                addToVideoCollection(currentVideo);
+            }
+        });
+        playPauseBtn.addEventListener('click', toggleMusic);
+        prevSongBtn.addEventListener('click', prevMusic);
+        nextSongBtn.addEventListener('click', nextMusic);
+        volumeControl.addEventListener('input', setVolume);
+        
+        // 播放语音卡
+        playVoiceBtn.addEventListener('click', () => {
+            if (currentCard && currentCard.isVoiceCard) {
+                if (voiceAudio && !voiceAudio.paused) {
+                    voiceAudio.pause();
+                    playVoiceBtn.innerHTML = '<i class="fa fa-play mr-1"></i>播放语音';
+                } else {
+                    playVoiceCard(currentCard);
+                }
+            }
+        });
+        
+        // 点击模态框外部关闭
+        cardModal.addEventListener('click', (e) => {
+            if (e.target === cardModal) {
+                closeCardModal();
+            }
+        });
+        
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                closeVideoModal();
+            }
+        });
+        
+        // 用户系统事件
+        loginBtn.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            hideError(usernameError);
+            hideError(passwordError);
+            
+            let hasError = false;
+            
+            if (!username) {
+                showError(usernameError, '请输入用户名');
+                hasError = true;
+            }
+            
+            if (!password) {
+                showError(passwordError, '请输入密码');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            if (login(username, password)) {
+                // 登录成功
+            } else {
+                showError(passwordError, '用户名或密码错误');
+                showStatus('登录失败，请检查用户名和密码', true);
+            }
+        });
+        
+        registerBtn.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            hideError(usernameError);
+            hideError(passwordError);
+            
+            let hasError = false;
+            
+            if (!username) {
+                showError(usernameError, '请输入用户名');
+                hasError = true;
+            } else if (username.length < 3) {
+                showError(usernameError, '用户名至少需要3个字符');
+                hasError = true;
+            }
+            
+            if (!password) {
+                showError(passwordError, '请输入密码');
+                hasError = true;
+            } else if (password.length < 4) {
+                showError(passwordError, '密码至少需要4个字符');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            if (register(username, password)) {
+                // 注册成功
+            } else {
+                showError(usernameError, '用户名已存在');
+                showStatus('注册失败，用户名已存在', true);
+            }
+        });
+        
+        userSwitchBtn.addEventListener('click', logout);
+        
+        // 初始化
+        // 修复：确保在页面加载时正确显示登录状态
+        function init() {
+            // 尝试自动登录上次用户
+            if (users.length > 0) {
+                // 尝试使用第一个用户自动登录
+                const lastUser = users[0];
+                if (login(lastUser.username, lastUser.password)) {
+                    return;
+                }
+            }
+            
+            // 添加测试账号（如果不存在）
+            const testUserExists = users.some(u => u.username === 'testuser');
+            if (!testUserExists) {
+                users.push({
+                    username: 'testuser',
+                    password: 'testpass',
+                    collection: [],
+                    videoCollection: []
+                });
+                localStorage.setItem('wooziGachaUsers', JSON.stringify(users));
+            }
+            
+            // 显示登录界面
+            userModal.classList.add('show');
+            userSwitchBtn.classList.remove('show');
+            usernameDisplay.classList.remove('show');
+            showWelcomePage();
+            
+            // 开始播放音乐
+            playMusic();
+        }
+
+        // 调用初始化函数
+        init();
+        
+        updateCollectionCounts();
+        displayCardCollection();
+        displayVideoCollection();
+        setupMusicControlDrag(); // 初始化音乐播放器拖拽功能
+    </script>
+</body>
+</html>
